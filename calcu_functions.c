@@ -4,6 +4,7 @@
 /*Bernard Saga: Feb 16, 2021: Fixed item_desc function's sigsev regarding wide characters */
 /*Bernard Saga: Feb 20, 2021: Added bomb function										  */
 /*Bernard Saga: Feb 28, 2021: Added navigation to interest_calc_win funuction             */
+/*Bernard Saga: March 03, 2021: Added comment for git excercices						  */
 
 
 #include "main_with_form.h"
