@@ -4,7 +4,8 @@
 /*Bernard Saga: Feb 16, 2021: Fixed item_desc function's sigsev regarding wide characters */
 /*Bernard Saga: Feb 20, 2021: Added bomb function										  */
 /*Bernard Saga: Feb 28, 2021: Added navigation to interest_calc_win funuction             */
-/*Bernard Saga: March 03, 2021: Added comment for git excercices						  */
+/*Bernard Saga: Mar 03, 2021: Added comment for git excercices						  	  */
+/*Bernard Saga: Mar 04, 2021: Remove subpad prefreshing in interest_calc_win			  */ 
 
 
 #include "main_with_form.h"
@@ -16,69 +17,70 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   PAD_PRESH padref;
   //char charlocal_buff[len];
   float principal,rate=0.0,MonthlyRepay,TotalPayment;
-  int row=1,col=0, numYrs=0, subHEIGHT, subWIDTH, navch, rowpadnav, rowcount =197;
+  int row=2,col=1, numYrs=0, subHEIGHT, subWIDTH, navch, rowpadnav, rowcount =197;
   padref = get_prefresh();										//populate padref members
-  subHEIGHT= maxrow-3;
-  subWIDTH=maxcol-3;
+  //subHEIGHT= maxrow-3;
+  subHEIGHT=6;
+  //subWIDTH=maxcol-2;
+  subWIDTH=52;
   
   
   /*START########## Create a Subpad ######################START*/
-  /*#*/	subpad1=subpad(local_win,maxrow-3,maxcol-3,1,1);    /*#*/							
+  /*#*/	subpad1=subpad(local_win,subHEIGHT,subWIDTH,1,1);    /*#*/							
   /*#*/	if(subpad1==NULL)									/*#*/
   /*#*/		bomb("Unable to create subpad");				/*#*/
   /*#*/														/*#*/
   /*#*/ keypad(subpad1,TRUE);								/*#*/
-  /*END########### Create a Subpad #########################END*/	 
-  	
+        win_border(subpad1,0);
+  /*END########### Create a Subpad #########################END*/	 	
   mvwprintw(stdscr,1,1,"maxrow=%d, maxcol=%d",maxrow,maxcol); //maxrow=200, maxcol=54
   wattron(subpad1,COLOR_PAIR(13) |A_BOLD);
   mvwprintw(subpad1,row++,col,"Input numbers only, decimal point is accepted."); //supposed to be 1
   mvwprintw(subpad1,row++,col,"Sample Input: Principal:5000;Rate;15.5%%;Noofyears:5;monthly:125.77");
   wattroff(subpad1,COLOR_PAIR(13) |A_BOLD);
   refresh();
-  row=5;
+  row=8;
   /*START################# MAIN PROGRAM #############################START*/
-  mvwprintw(subpad1,row++,col,"Enter Principal:");
-  getyx(subpad1,row,col);
-  wmove(subpad1,row,col);
-  prefresh(subpad1, 0,0,	1,1,	subHEIGHT,subWIDTH);
+  mvwprintw(local_win,row++,col,"Enter Principal:");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);	
-  principal=inputIntegral(subpad1, local_win, maxinput,padon);
-  row++;col=0;
-  mvwprintw(subpad1,row++,col,"%.2f",principal);
-  mvwprintw(subpad1,row,col,"Enter Rate(in %):");
+  principal=inputIntegral(local_win, stdscr, maxinput,padon);
+  mvwprintw(local_win,row++,col,"%.2f",principal);
+  mvwprintw(local_win,row,col,"Enter Rate(in %):");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-  rate=inputIntegral(subpad1,local_win,maxinput,padon);
-  row++;col=0;  
-  mvwprintw(subpad1,row++,col,"%.2f%%",rate);
-  mvwprintw(subpad1,row,col,"Enter No. years:");
+  rate=inputIntegral(local_win, stdscr, maxinput,padon);
+  row++;
+  mvwprintw(local_win,row++,col,"%.2f%%",rate);
+  mvwprintw(local_win,row,col,"Enter No. years:");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-  numYrs=inputIntegral(subpad1,local_win,2,padon);
-  row++;col=0;  
-  mvwprintw(subpad1,row++,col,"%d",numYrs);
+  numYrs=inputIntegral(local_win,local_win,2,padon);
+  row++;
+  mvwprintw(local_win,row++,col,"%d",numYrs);
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
   MonthlyRepay=compute(principal,rate,numYrs);
   TotalPayment=MonthlyRepay*(numYrs*12);
-  row++;col=0;
+  row++;
   /*END ########################## MAIN PROGRAM ###############################END*/
   
- /*START################## FINAL OUTPUT ##################################START*/ 
-  mvwprintw(subpad1,row++,col,"Principal: %.2f", principal);  
-  mvwprintw(subpad1,row++,col,"Rate(%%): %.2f", rate);
-  mvwprintw(subpad1,row++,col,"Number of years: %d", numYrs);
-  mvwprintw(subpad1,row++,2,"Monthly Payments: %.2f", MonthlyRepay);
-  mvwprintw(subpad1,row++,2,"Total Payments: %.2f", TotalPayment);
-  mvwprintw(subpad1,row++,2,"Total Interest: %.2f", TotalPayment-principal);
+  /*START################## FINAL OUTPUT ##################################START*/ 
+  mvwprintw(local_win,row++,col,"Principal: %.2f", principal);  
+  mvwprintw(local_win,row++,col,"Rate(%%): %.2f", rate);
+  mvwprintw(local_win,row++,col,"Number of years: %d", numYrs);
+  mvwprintw(local_win,row++,2,"Monthly Payments: %.2f", MonthlyRepay);
+  mvwprintw(local_win,row++,2,"Total Payments: %.2f", TotalPayment);
+  mvwprintw(local_win,row++,2,"Total Interest: %.2f", TotalPayment-principal);
+  wattron(subpad1,COLOR_PAIR(2)|A_BOLD);
+  mvwprintw(subpad1,1,1,"Navigation mode: press 'q' to quit, up and down keys to navigate.");
+  wattroff(subpad1,COLOR_PAIR(2)|A_BOLD);
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+  
   /*END################### FINAL OUTPUT ###################################END*/
   
- // prefresh(local_win, 0,0,	3,(xmax-1)*0.30,	ymax-3,(xmax-1)*0.98);
   doupdate();
   refresh();
   
-  /*START############## NAVIGATION OF PROGRAM ##########################START*/
+    /*START############## NAVIGATION OF PROGRAM ##########################START*/
     rowpadnav = padref.padystart;
-	while((navch=wgetch(subpad1))!='q')
+	while((navch=wgetch(local_win))!='q')
 	{
 		switch(navch)
 		{
@@ -97,9 +99,6 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
 		}	
 	}
   /*END############### NAVIGATION OF PROGRAM ##############################END */	
-  
-  doupdate();
-  refresh();
 }		
 
 void fah_to_celsius(WINDOW *local_win, int ymax, int xmax)
@@ -294,7 +293,7 @@ void bomb(char *message)
 						*wcnt=0;		
 				}
 				   if(padflag==padon)
-					{prefresh(parentwin,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}	
+					{prefresh(win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}	
 				   else
 					{refresh();
 					 wrefresh(win);}
@@ -351,7 +350,7 @@ double inputIntegral(WINDOW* win, WINDOW* parentwin, int maxsize, int padflag){
 		 DecimalFlag==1?(DecimalArr[++dcnt]=ch):(WholeNArr[wcnt++]=ch);
 		 
 		 	if(padflag==padon)
-				{prefresh(parentwin,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}
+				{prefresh(win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}
 			else	
 				{wrefresh(win);}	
 
@@ -365,7 +364,7 @@ double inputIntegral(WINDOW* win, WINDOW* parentwin, int maxsize, int padflag){
 			++charcount;
 			col++;
 				if(padflag==padon)
-					{prefresh(parentwin,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}
+					{prefresh(win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}
 				else	
 					{wrefresh(win);}	
 		}
