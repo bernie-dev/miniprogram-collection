@@ -44,7 +44,7 @@ Input how many products, input names of each products. (3)Input how many salesma
     
 	mvwprintw(margin,marginrow++,margincol, "Enter how many Salesman: ",margin_maxrow,margin_maxcol); //col=25
 	wrefresh(margin);
-    totalSman=inputIntegral(margin, local_win, maxinput,padon);
+    totalSman=inputIntegral(margin, maxinput,padon);
     
     if(totalSman<=0){
 		sprintf(message,"Error: zero value not accepted. Exiting...");

@@ -3,6 +3,7 @@
 /*Bernard Saga: Dec 15, 2020: Change paraemters for function_exit prototype 				*/
 /*Benard Saga: Feb 11, 2021: remove menu variable parameter in win_border 					*/
 /*Bernard Saga: Feb 12, 2021: Remove paramter MENU* in create_wind()						*/
+/*Bernard Saga: March 04, 2021: Remove parentwin param in inputInteg(),deleteChar()			*/
 
 
 #define _XOPEN_SOURCE_EXTENDED	//for ncursesw, for wide characters; must declared before any preprocessor directives
@@ -69,8 +70,8 @@ int func_exit(MENU *, ITEM **, int choices, WINDOW*, WINDOW* win[], WINDOW*); //
 void description_list(WINDOW *, char *);
 void bomb(char *);
 void padwin_func(WINDOW* padwin);
-void deleteChar(WINDOW* win, WINDOW* parentwin, int *row, int *col, int* charcnt, int delbound, int* DecimalFlag, int* dcnt, int* wcnt, int padflag);
-double inputIntegral(WINDOW* win, WINDOW* parentwin, int limit, int padflag);
+void deleteChar(WINDOW* win, int *row, int *col, int* charcnt, int delbound, int* DecimalFlag, int* dcnt, int* wcnt, int padflag);
+double inputIntegral(WINDOW* win, int limit, int padflag);
 PAD_PRESH get_prefresh(void); //for prefresh for parent;
 //function prototype -end
 
