@@ -6,6 +6,7 @@
 /*Bernard Saga: Feb 28, 2021: Added navigation to interest_calc_win funuction             */
 /*Bernard Saga: Mar 03, 2021: Added comment for git excercices						  	  */
 /*Bernard Saga: Mar 04, 2021: Remove subpad prefreshing in interest_calc_win			  */ 
+/*Bernard Saga: mar 04, 2021: Remove parent win param in inputInteg() and deleteChar()	  */
 
 
 #include "main_with_form.h"
@@ -30,7 +31,6 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   /*#*/		bomb("Unable to create subpad");				/*#*/
   /*#*/														/*#*/
   /*#*/ keypad(subpad1,TRUE);								/*#*/
-        //win_border(subpad1,0);
         wbkgd(subpad1,COLOR_PAIR(16)); 
   /*END########### Create a Subpad #########################END*/	 	
   mvwprintw(stdscr,1,1,"maxrow=%d, maxcol=%d",maxrow,maxcol); //maxrow=200, maxcol=54
@@ -39,20 +39,20 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   mvwprintw(subpad1,row++,col,"Sample Input: Principal:5000;Rate;15.5%%;Noofyears:5;monthly:125.77");
   wattroff(subpad1,COLOR_PAIR(16)| A_BOLD);
   refresh();
-  row=8;
+  row=8;col=2;
   /*START################# MAIN PROGRAM #############################START*/
   mvwprintw(local_win,row++,col,"Enter Principal:");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);	
-  principal=inputIntegral(local_win, stdscr, maxinput,padon);
+  principal=inputIntegral(local_win, maxinput,padon);
   mvwprintw(local_win,row++,col,"%.2f",principal);
   mvwprintw(local_win,row,col,"Enter Rate(in %):");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-  rate=inputIntegral(local_win, stdscr, maxinput,padon);
+  rate=inputIntegral(local_win, maxinput,padon);
   row++;
   mvwprintw(local_win,row++,col,"%.2f%%",rate);
   mvwprintw(local_win,row,col,"Enter No. years:");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-  numYrs=inputIntegral(local_win,local_win,2,padon);
+  numYrs=inputIntegral(local_win,2,padon);
   row++;
   mvwprintw(local_win,row++,col,"%d",numYrs);
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
@@ -69,7 +69,7 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   mvwprintw(local_win,row++,2,"Total Payments: %.2f", TotalPayment);
   mvwprintw(local_win,row++,2,"Total Interest: %.2f", TotalPayment-principal);
   wattron(subpad1,COLOR_PAIR(11)|A_BOLD);
-  mvwprintw(subpad1,1,1,"Navigation mode: press 'q' to quit, up and down keys to navigate.");
+  mvwprintw(subpad1,0,1,"Nav mode: press 'q' to quit. up,down keys to navigate.");
   wattroff(subpad1,COLOR_PAIR(11)|A_BOLD);
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
   
@@ -258,7 +258,7 @@ void bomb(char *message)
  }
  
  
- void deleteChar(WINDOW* win, WINDOW* parentwin, int* row, int* col, int* charcount, int delboundary, int* DecimalFlag, int* dcnt, int* wcnt, int padflag){
+ void deleteChar(WINDOW* win, int* row, int* col, int* charcount, int delboundary, int* DecimalFlag, int* dcnt, int* wcnt, int padflag){
 		PAD_PRESH padref;
 		padref = get_prefresh();
 		
@@ -301,7 +301,7 @@ void bomb(char *message)
 
 }	
 
-double inputIntegral(WINDOW* win, WINDOW* parentwin, int maxsize, int padflag){
+double inputIntegral(WINDOW* win, int maxsize, int padflag){
 	 
   //int maxrow, maxcol;
   PAD_PRESH padref;							//for the parentwin
@@ -333,7 +333,7 @@ double inputIntegral(WINDOW* win, WINDOW* parentwin, int maxsize, int padflag){
 	 //check character input if reach limit
 	 if(charcount>maxsize){
 		 if(ch == 127 || ch ==KEY_BACKSPACE){
-			deleteChar(win, parentwin, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
+			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
 		 }	
 		else	
 			continue;
@@ -370,7 +370,7 @@ double inputIntegral(WINDOW* win, WINDOW* parentwin, int maxsize, int padflag){
 		}
 	}	 	
 	else if(ch==KEY_BACKSPACE || ch==127){
-			deleteChar(win, parentwin, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
+			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
 	}
   }	
   
