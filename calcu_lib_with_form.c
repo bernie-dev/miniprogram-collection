@@ -64,6 +64,8 @@ int main(void)
   init_pair(13,COLOR_YELLOW,COLOR_BLUE); //for the salesman table instructions
   init_pair(14,COLOR_YELLOW,COLOR_RED);
   init_pair(15,COLOR_RED,COLOR_GREEN);
+  init_pair(16,COLOR_YELLOW,COLOR_WHITE);
+  init_pair(17,COLOR_BLUE,COLOR_WHITE);
  
   //get size dimension of stdscr screen 
   getmaxyx(stdscr, ymax, xmax);   //ymax is 24, xmax is 80	
@@ -150,7 +152,7 @@ int main(void)
   //background and font color of windows_calc[n]	
   wbkgd(windows_calc[0],COLOR_PAIR(3)); //Fahrenheit2cel
   wbkgd(windows_calc[1],COLOR_PAIR(9)); //cel2Fahrenheit
-  wbkgd(windows_calc[2],COLOR_PAIR(3)); //interest_loan
+  wbkgd(windows_calc[2],COLOR_PAIR(17)); //interest_loan
   wbkgd(windows_calc[3],COLOR_PAIR(15));  //salesman table
 
   //set color background foreground for window menu

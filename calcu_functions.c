@@ -19,10 +19,9 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   float principal,rate=0.0,MonthlyRepay,TotalPayment;
   int row=2,col=1, numYrs=0, subHEIGHT, subWIDTH, navch, rowpadnav, rowcount =197;
   padref = get_prefresh();										//populate padref members
-  //subHEIGHT= maxrow-3;
   subHEIGHT=6;
-  //subWIDTH=maxcol-2;
-  subWIDTH=52;
+  subWIDTH=maxcol-2;
+  //subWIDTH=52;
   
   
   /*START########## Create a Subpad ######################START*/
@@ -31,13 +30,14 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   /*#*/		bomb("Unable to create subpad");				/*#*/
   /*#*/														/*#*/
   /*#*/ keypad(subpad1,TRUE);								/*#*/
-        win_border(subpad1,0);
+        //win_border(subpad1,0);
+        wbkgd(subpad1,COLOR_PAIR(16)); 
   /*END########### Create a Subpad #########################END*/	 	
   mvwprintw(stdscr,1,1,"maxrow=%d, maxcol=%d",maxrow,maxcol); //maxrow=200, maxcol=54
-  wattron(subpad1,COLOR_PAIR(13) |A_BOLD);
+  wattron(subpad1,COLOR_PAIR(16)| A_BOLD);
   mvwprintw(subpad1,row++,col,"Input numbers only, decimal point is accepted."); //supposed to be 1
   mvwprintw(subpad1,row++,col,"Sample Input: Principal:5000;Rate;15.5%%;Noofyears:5;monthly:125.77");
-  wattroff(subpad1,COLOR_PAIR(13) |A_BOLD);
+  wattroff(subpad1,COLOR_PAIR(16)| A_BOLD);
   refresh();
   row=8;
   /*START################# MAIN PROGRAM #############################START*/
@@ -68,9 +68,9 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   mvwprintw(local_win,row++,2,"Monthly Payments: %.2f", MonthlyRepay);
   mvwprintw(local_win,row++,2,"Total Payments: %.2f", TotalPayment);
   mvwprintw(local_win,row++,2,"Total Interest: %.2f", TotalPayment-principal);
-  wattron(subpad1,COLOR_PAIR(2)|A_BOLD);
+  wattron(subpad1,COLOR_PAIR(11)|A_BOLD);
   mvwprintw(subpad1,1,1,"Navigation mode: press 'q' to quit, up and down keys to navigate.");
-  wattroff(subpad1,COLOR_PAIR(2)|A_BOLD);
+  wattroff(subpad1,COLOR_PAIR(11)|A_BOLD);
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
   
   /*END################### FINAL OUTPUT ###################################END*/
