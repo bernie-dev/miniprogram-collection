@@ -77,6 +77,7 @@ void deleteChar(WINDOW* win, int *row, int *col, int* charcnt, int delbound, int
 double inputIntegral(WINDOW* win, int limit, int padflag);
 PAD_PRESH get_prefresh(void); //for prefresh for parent;
 void window_shadow(WIN *attr, WINDOW *parentwin);
+void errorMessage(char *message);
 //function prototype -end
 
 
