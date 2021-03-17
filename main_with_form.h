@@ -4,6 +4,8 @@
 /*Benard Saga: Feb 11, 2021: remove menu variable parameter in win_border 					*/
 /*Bernard Saga: Feb 12, 2021: Remove paramter MENU* in create_wind()						*/
 /*Bernard Saga: March 04, 2021: Remove parentwin param in inputInteg(),deleteChar()			*/
+/*Bernard Saga: March 17, 2021: Added value shadowFlag in datatype WIN for window shadow creation */
+/*Bernard Saga: March 17, 2021: Added shadow_window prototype								 */
 
 
 #define _XOPEN_SOURCE_EXTENDED	//for ncursesw, for wide characters; must declared before any preprocessor directives
@@ -34,6 +36,7 @@ typedef struct _WIN_struct{
     int startx,starty;  
     int HEIGHT, WIDTH;
     int flag;
+    int shadowFlag; 
 }WIN;
 
 typedef struct _PANEL_DATA{
@@ -73,6 +76,7 @@ void padwin_func(WINDOW* padwin);
 void deleteChar(WINDOW* win, int *row, int *col, int* charcnt, int delbound, int* DecimalFlag, int* dcnt, int* wcnt, int padflag);
 double inputIntegral(WINDOW* win, int limit, int padflag);
 PAD_PRESH get_prefresh(void); //for prefresh for parent;
+void window_shadow(WIN *attr, WINDOW *parentwin);
 //function prototype -end
 
 

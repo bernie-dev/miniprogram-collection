@@ -4,6 +4,7 @@
 /* Feb 11, 2021: Remove menu paramters in win_border function 								*/
 /* Feb 12, 2021: Modified init_wparam() replace ternary to switch-case and added flag 3 	*/
 /* Feb 12, 2021: Remove paramter MENU* in create_wind()										*/
+/* March 17, 2021: Separate window shadow creation from create_wind							*/
 
 #include "main_with_form.h"
 
@@ -31,10 +32,9 @@ void init_wparam(WIN *winparam, int rowmax, int colmax) //if 1 calculator window
 WINDOW *create_wind(WIN *pwin, WINDOW* parentwin)
 {
   WINDOW *local_win;
-  int i;
    
   if(pwin->flag==3)
-		local_win=derwin(parentwin,pwin->HEIGHT,pwin->WIDTH,pwin->starty,pwin->startx);
+		local_win=subwin(parentwin,pwin->HEIGHT,pwin->WIDTH,pwin->starty,pwin->startx);
   else if(pwin->flag==4)
 		local_win=newpad(20,54);
   else if(pwin->flag==5){
@@ -45,22 +45,8 @@ WINDOW *create_wind(WIN *pwin, WINDOW* parentwin)
   else
 		{local_win = newwin(pwin->HEIGHT,pwin->WIDTH,pwin->starty,pwin->startx);}
   
-  /*START: shadow creation */
-  wattron(parentwin,COLOR_PAIR(SHADW_CLOR));
-
-  for(i = (pwin->startx+2); i < (pwin->startx + pwin->WIDTH + 1); i++){   //bottom shadow across
-        wmove(parentwin,(pwin->starty + pwin->HEIGHT), i);
-        waddch(parentwin,' ');
-  }
-
-  for(i = (pwin->starty+1); i < (pwin->starty + pwin->HEIGHT + 1); i++){ //side right shadow downwards
-        wmove(parentwin,i,(pwin->startx + pwin->WIDTH));
-        waddch(parentwin,' ');
-        wmove(parentwin,i,(pwin->startx + pwin->WIDTH + 1));
-        waddch(parentwin,' ');
-  }
-  wattroff(parentwin,COLOR_PAIR(SHADW_CLOR));
-  /*END: shadow creation */	
+  if(pwin->shadowFlag == true)
+	window_shadow(pwin, parentwin);
   
   /*START: Calls win_border functions */	
   if(pwin->flag==1)
@@ -112,5 +98,27 @@ PAD_PRESH get_prefresh(void){
 	padref.WIDTH = (maxcol-1)*0.98;
 	//prefresh(windows_calc[3],0,0,	3,(xmax-1)*0.30,	ymax-3,(xmax-1)*0.98);
 	return padref;
-}	
+}
 
+void window_shadow(WIN *attr, WINDOW *parentwin)
+{	
+  /*START: shadow creation */
+  int i;
+  wattron(parentwin,COLOR_PAIR(SHADW_CLOR));
+
+  for(i = (attr->startx+2); i < (attr->startx + attr->WIDTH + 1); i++){   //bottom shadow across
+        wmove(parentwin,(attr->starty + attr->HEIGHT), i);
+        waddch(parentwin,' ');
+  }
+
+  for(i = (attr->starty+1); i < (attr->starty + attr->HEIGHT + 1); i++){ //side right shadow downwards
+        wmove(parentwin,i,(attr->startx + attr->WIDTH));
+        waddch(parentwin,' ');
+        wmove(parentwin,i,(attr->startx + attr->WIDTH + 1));
+        waddch(parentwin,' ');
+  }
+  wattroff(parentwin,COLOR_PAIR(SHADW_CLOR));
+  /*END: shadow creation */	
+
+
+}

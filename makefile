@@ -8,7 +8,7 @@ LIB2=-lncursesw
 #LIB2=-lncurses
 LIB3=-lm
 
-CFLAGS = -c
+CFLAGS = -Wall -c
 LIBS = ${LIB0} ${LIB1} ${LIB2} ${LIB3}
 
 
