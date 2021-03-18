@@ -403,28 +403,37 @@ void errorMessage(char *message)
   int errWRow, errWCol;
   int length;
   int inputq;
+  
   length=strlen(message);
   getmaxyx(stdscr, stdscrRow,stdscrCol);
   errdata.flag = 3;
   errdata.shadowFlag = false;
+  
   init_wparam(&errdata,stdscrRow,stdscrCol);
   errorWin=create_wind(&errdata,stdscr);
-  wbkgd(errorWin,COLOR_PAIR(11));
+  wclear(errorWin);
+  win_border(errorWin, 0);
+  wbkgd(errorWin,COLOR_PAIR(18));
+  
   errPan = new_panel(errorWin); //presumably this is the one at the top of the windows
-   update_panels();
+  update_panels();
   getmaxyx(errorWin,errWRow,errWCol);
-  mvwprintw(errorWin,errWRow/2,(errWCol - length)/2, "%s\n", message);
-  wprintw(errorWin,"Press 'q' to quit error windown.");
+  mvwprintw(errorWin,(errWRow/2-1),(errWCol - length)/2, "%s", message);
+  mvwprintw(errorWin,(errWRow/2-1)+1,(errWCol-32)/2,"Press 'q' to quit error windown.");
   top_panel(errPan);
- 
-  refresh();
+  
   
   while((inputq=wgetch(errorWin))!='q'){
 	  continue;
   }
-  hide_panel(errPan); 	   
-  update_panels();
-  refresh();
+    hide_panel(errPan);
+    update_panels();
+    doupdate();
+    refresh();
+    
+    delwin(errorWin);
+    del_panel(errPan);
+    
   
 
 }

@@ -7,11 +7,8 @@
 #include "main_with_form.h"
 #define DIGITSIZE 3
 #define maxinput 8
- 
-//void deleteChar(WINDOW* win, int *row, int *col, int* charcnt, int delbound, int* DecimalFlag, int* dcnt, int* wcnt);
-//double inputIntegral(WINDOW* win, int limit);
-//void errorMessage(WINDOW* win, int row, int col,char message[]);
 
+int getSalesmanQtyF(WINDOW *localwin, int row, int col); 
 
 void salesman_table(WINDOW *local_win, int ymax, int xmax)
 {
@@ -47,18 +44,16 @@ Input how many products, input names of each products. (3)Input how many salesma
   /*END:Instruction inside the window; Beginning of the program*/		
    
     lwinrow=8;lwincol=1;   								
-    mvwprintw(local_win,lwinrow++,lwincol,"Enter number of salesman:" );
-    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-    totalSman=inputIntegral(local_win,1,padon);
-    if(totalSman<=0){
+    totalSman=getSalesmanQtyF(local_win,lwinrow,lwincol);
+    while(totalSman<=0){
 		sprintf(message,"Error: zero value not accepted. Exiting...");
-		errorMessage("Input should be greater than zero");
-		//win_border(local_win,3);
-		curs_set(0);
+		errorMessage("Input zero not accepted");
+		//curs_set(0);
+		touchwin(subpad1);
 		wrefresh(local_win);
-		return;
+		totalSman=getSalesmanQtyF(local_win,lwinrow,lwincol);
 	}	
-    mvwprintw(local_win,lwinrow++,lwincol,"Number of Salesman: %d", totalSman);
+    mvwprintw(local_win,++lwinrow,lwincol,"Number of Salesman: %d", totalSman);
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
     refresh();
     
@@ -79,28 +74,17 @@ Input how many products, input names of each products. (3)Input how many salesma
 	return;
 } 
 
-/*void errorMessage(WINDOW* win, int row, int col, char message[]){
+int getSalesmanQtyF(WINDOW *local_win, int row, int col)
+{
+  PAD_PRESH padref;
+  padref=get_prefresh();
+  int total;
+  
+  mvwprintw(local_win,row,col,"Enter number of salesman:" );
+  prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+  total=inputIntegral(local_win,1,padon);
+  return total;
+  
+}	  
 
-    WINDOW* errwin;
-	WIN errdimensions;
-	int errrow,errcol,errlen;
-	errdimensions.flag=3;
-	init_wparam(&errdimensions,row,col);
-	errwin=create_wind(&errdimensions,stdscr); //also create borders
-	
-	wbkgd(errwin,COLOR_PAIR(15)); //background green
-	getmaxyx(errwin,errrow,errcol); 
-	wclear(errwin);
-	
-	errlen=strlen(message);
-    //wattron(errwin,COLOR_PAIR(13));
-    mvwprintw(errwin,(errrow/2)-2,(errcol-errlen)/2,"%s",message);
-    mvwprintw(errwin,(errrow/2)-1,(errcol-13)/2,"Press any key");
-    //wattroff(errwin,COLOR_PAIR(13));
-    win_border(errwin,3);
-    
-    wrefresh(errwin);
-    refresh();
-    
-}	*/
 

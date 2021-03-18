@@ -67,6 +67,7 @@ int main(void)
   init_pair(15,COLOR_RED,COLOR_GREEN);
   init_pair(16,COLOR_YELLOW,COLOR_WHITE);
   init_pair(17,COLOR_BLUE,COLOR_WHITE);
+  init_pair(18,COLOR_WHITE,COLOR_RED);
  
   //get size dimension of stdscr screen 
   getmaxyx(stdscr, ymax, xmax);   //ymax is 24, xmax is 80	
