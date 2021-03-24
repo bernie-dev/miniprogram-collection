@@ -6,6 +6,7 @@
 /* Bernard Saga: Feb 11, 2021: Added error window  and shadow 	     							  */
 /* Bernard Saga: Feb 19, 2021: Added calcu_win variable in struct PANEL_DATA. replace panel_window usage */
 /* Bernard Saga: March 17, 2021: Added value shadowFlag in datatype WIN for window shadow creation */
+/* Bernard Saga: MArch 23, 2021: Line74-75. Note about screen size								   */  
 /*################################################################################################*/
 
 #include "main_with_form.h"
@@ -70,7 +71,9 @@ int main(void)
   init_pair(18,COLOR_WHITE,COLOR_RED);
  
   //get size dimension of stdscr screen 
-  getmaxyx(stdscr, ymax, xmax);   //ymax is 24, xmax is 80	
+  //normal screen: ymax is 24, xmax is 80
+  //full screen: ymax is 39, xmas is 150	
+  getmaxyx(stdscr, ymax, xmax);   
   
   /*Set background color for standard screen */
   wbkgd(stdscr, A_NORMAL | COLOR_PAIR(1) | ' '); //bg:cyan;font:red
@@ -100,7 +103,7 @@ int main(void)
 
   //stdscr 
   attron(COLOR_PAIR(1));  
-  mvaddstr(row++,col,"This program contains library of calculators VER 1.0"); //row becomes 1
+  mvprintw(row++,col,"This program contains library of calculators VER 1.0 HEIGHT=%d, WIDTH=%d",ymax,xmax); //row becomes 1
   //mvprintw(row,col,"programmer: Bernard Saga... rowsize= %d, columnsize = %d",ymax,xmax);
   attroff(COLOR_PAIR(1));
   

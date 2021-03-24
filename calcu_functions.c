@@ -317,7 +317,7 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
   int DecimalArr[maxsize+1];
 
   /*counters for the arrays*/
-  int wcnt = 0;					//for whole numbers array
+  int wcnt = 0;					    //for whole numbers array
   int dcnt = -1;					//for decimal array -1 is for the decimal point
   /*END: External variables for InputIntegral Functions and delete Functions :END */	
   
@@ -333,7 +333,7 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
   {  
 	 //check character input if reach limit
 	 if(charcount>maxsize){
-		 if(ch == 127 || ch ==KEY_BACKSPACE){
+		 if(ch == 127 || ch == KEY_BACKSPACE){
 			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
 		 }	
 		else	
