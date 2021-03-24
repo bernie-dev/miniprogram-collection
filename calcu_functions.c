@@ -24,15 +24,16 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   subWIDTH=maxcol-2;
   //subWIDTH=52;
   
-  
   /*START########## Create a Subpad ######################START*/
-  /*#*/	subpad1=subpad(local_win,subHEIGHT,subWIDTH,1,1);    /*#*/							
-  /*#*/	if(subpad1==NULL)									/*#*/
-  /*#*/		bomb("Unable to create subpad");				/*#*/
-  /*#*/														/*#*/
-  /*#*/ keypad(subpad1,TRUE);								/*#*/
-        wbkgd(subpad1,COLOR_PAIR(16)); 
-  /*END########### Create a Subpad #########################END*/	 	
+  subpad1=subpad(local_win,subHEIGHT,subWIDTH,1,1);    							
+   if(subpad1==NULL)									
+  		bomb("Unable to create subpad");				
+  														
+  keypad(subpad1,TRUE);								
+  wbkgd(subpad1,COLOR_PAIR(16)); 
+  /*END########### Create a Subpad #########################END*/
+  
+  /*START################# MAIN PROGRAM #############################START*/	 	
   mvwprintw(stdscr,1,1,"maxrow=%d, maxcol=%d",maxrow,maxcol); //maxrow=200, maxcol=54
   wattron(subpad1,COLOR_PAIR(16)| A_BOLD);
   mvwprintw(subpad1,row++,col,"Input numbers only, decimal point is accepted."); //supposed to be 1
@@ -40,7 +41,7 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   wattroff(subpad1,COLOR_PAIR(16)| A_BOLD);
   refresh();
   row=8;col=2;
-  /*START################# MAIN PROGRAM #############################START*/
+  
   mvwprintw(local_win,row++,col,"Enter Principal:");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);	
   principal=inputIntegral(local_win, maxinput,padon);
@@ -316,7 +317,7 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
   int DecimalArr[maxsize+1];
 
   /*counters for the arrays*/
-  int wcnt = 0;					//for whole numbers array
+  int wcnt = 0;					    //for whole numbers array
   int dcnt = -1;					//for decimal array -1 is for the decimal point
   /*END: External variables for InputIntegral Functions and delete Functions :END */	
   
@@ -332,7 +333,7 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
   {  
 	 //check character input if reach limit
 	 if(charcount>maxsize){
-		 if(ch == 127 || ch ==KEY_BACKSPACE){
+		 if(ch == 127 || ch == KEY_BACKSPACE){
 			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
 		 }	
 		else	
@@ -391,3 +392,48 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
   return FinalValue/power;	
    	
 }	
+
+void errorMessage(char *message)
+{
+	
+  WINDOW *errorWin;
+  WIN errdata;
+  PANEL *errPan;
+  int stdscrRow, stdscrCol;
+  int errWRow, errWCol;
+  int length;
+  int inputq;
+  
+  length=strlen(message);
+  getmaxyx(stdscr, stdscrRow,stdscrCol);
+  errdata.flag = 3;
+  errdata.shadowFlag = false;
+  
+  init_wparam(&errdata,stdscrRow,stdscrCol);
+  errorWin=create_wind(&errdata,stdscr);
+  wclear(errorWin);
+  win_border(errorWin, 0);
+  wbkgd(errorWin,COLOR_PAIR(18));
+  
+  errPan = new_panel(errorWin); //presumably this is the one at the top of the windows
+  update_panels();
+  getmaxyx(errorWin,errWRow,errWCol);
+  mvwprintw(errorWin,(errWRow/2-1),(errWCol - length)/2, "%s", message);
+  mvwprintw(errorWin,(errWRow/2-1)+1,(errWCol-32)/2,"Press 'q' to quit error windown.");
+  top_panel(errPan);
+  
+  
+  while((inputq=wgetch(errorWin))!='q'){
+	  continue;
+  }
+    hide_panel(errPan);
+    update_panels();
+    doupdate();
+    refresh();
+    
+    delwin(errorWin);
+    del_panel(errPan);
+    
+  
+
+}

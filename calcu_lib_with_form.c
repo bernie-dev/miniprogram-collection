@@ -5,6 +5,8 @@
 /* Bernard Saga: Feb.08, 2021: modified salesman_table.c										  */
 /* Bernard Saga: Feb 11, 2021: Added error window  and shadow 	     							  */
 /* Bernard Saga: Feb 19, 2021: Added calcu_win variable in struct PANEL_DATA. replace panel_window usage */
+/* Bernard Saga: March 17, 2021: Added value shadowFlag in datatype WIN for window shadow creation */
+/* Bernard Saga: MArch 23, 2021: Line74-75. Note about screen size								   */  
 /*################################################################################################*/
 
 #include "main_with_form.h"
@@ -66,9 +68,12 @@ int main(void)
   init_pair(15,COLOR_RED,COLOR_GREEN);
   init_pair(16,COLOR_YELLOW,COLOR_WHITE);
   init_pair(17,COLOR_BLUE,COLOR_WHITE);
+  init_pair(18,COLOR_WHITE,COLOR_RED);
  
   //get size dimension of stdscr screen 
-  getmaxyx(stdscr, ymax, xmax);   //ymax is 24, xmax is 80	
+  //normal screen: ymax is 24, xmax is 80
+  //full screen: ymax is 39, xmas is 150	
+  getmaxyx(stdscr, ymax, xmax);   
   
   /*Set background color for standard screen */
   wbkgd(stdscr, A_NORMAL | COLOR_PAIR(1) | ' '); //bg:cyan;font:red
@@ -98,14 +103,17 @@ int main(void)
 
   //stdscr 
   attron(COLOR_PAIR(1));  
-  mvaddstr(row++,col,"This program contains library of calculators VER 1.0"); //row becomes 1
+  mvprintw(row++,col,"This program contains library of calculators VER 1.0 HEIGHT=%d, WIDTH=%d",ymax,xmax); //row becomes 1
   //mvprintw(row,col,"programmer: Bernard Saga... rowsize= %d, columnsize = %d",ymax,xmax);
   attroff(COLOR_PAIR(1));
   
   /*START#############initiation for each window flags for init_wparam function########################START*/
   /*#*/ winb.flag = 1;   	// flag to use windows program dimesions;     								 /*#*/
+        winb.shadowFlag = true;
   /*#*/ menub.flag = 2;   	// flag to use if menu window dimensions								     /*#*/
+        menub.shadowFlag = true;
   /*#*/ padb.flag = 5;      //flag for pad windows     													 /*#*/
+        padb.shadowFlag = true;
   /*#*/ 																								 /*#*/                                     
   /*#*/                                                                                                  /*#*/
   /*#*/	//setup dimensions 	                                                                             /*#*/
@@ -153,7 +161,7 @@ int main(void)
   wbkgd(windows_calc[0],COLOR_PAIR(3)); //Fahrenheit2cel
   wbkgd(windows_calc[1],COLOR_PAIR(9)); //cel2Fahrenheit
   wbkgd(windows_calc[2],COLOR_PAIR(17)); //interest_loan
-  wbkgd(windows_calc[3],COLOR_PAIR(15));  //salesman table
+  wbkgd(windows_calc[3],COLOR_PAIR(9));  //salesman table
 
   //set color background foreground for window menu
   wbkgd(window_menu,COLOR_PAIR(9));
@@ -285,9 +293,9 @@ int main(void)
 				refresh();
 						
 				//call the calculator functions that display the content in the windows
-				func_p=ptrs->func_ptrs;	 //functions associated with the item choice and panel window
+				func_p=ptrs->func_ptrs;	 								//functions associated with the item choice and panel window
 				curs_set(1);											//to set cursor to visible
-				func_p(win_cur,height,width);	//row is 1		
+				func_p(win_cur,height,width);							//row is 1		
 				
 				wrefresh(win_cur);
 				refresh();					
