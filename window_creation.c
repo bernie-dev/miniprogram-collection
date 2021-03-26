@@ -5,6 +5,7 @@
 /* Feb 12, 2021: Modified init_wparam() replace ternary to switch-case and added flag 3 	*/
 /* Feb 12, 2021: Remove paramter MENU* in create_wind()										*/
 /* March 17, 2021: Separate window shadow creation from create_wind							*/
+/* MArch 24, 2021: Included PAD_PRESH function												*/
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "main_with_form.h"
@@ -85,7 +86,7 @@ void win_border(WINDOW *win, int flag)
 	mvwprintw(win,0,(width - 4)/2, "MENU");
    
 }
-
+//PAD_PRESH function populates PAD_PRESH data type used for pads window
 PAD_PRESH get_prefresh(void){
    int maxrow, maxcol;
    getmaxyx(stdscr,	maxrow, maxcol);

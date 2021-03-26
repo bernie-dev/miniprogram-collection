@@ -4,7 +4,8 @@
 /*March 16, 2021: Modified max character for InputIntegral for salesman_Table */
 /*March 18, 2021: Create Fucnction for getting input for how many the salesman */
 /*March 23, 2021: Added function getlistnames(),getname() for name collection   */ 
-/*March 24, 2021: Added delCh() function										*/										
+/*March 24, 2021: Added delCh() function										*/		
+/*March 25, 2021: getname(), delCh,getlistnames(): added/modified PADREF pointers */								
 
 
 #include "main_with_form.h"
@@ -14,10 +15,10 @@
 #define MAXINPUTNAME 20
 
 int getSalesmanQtyF(WINDOW *localwin, int row, int col); 
-void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary);
-int getname(WINDOW *local_win, char *strname, int maxchar, int boundary, int *delrow, int *delcol, PAD_PRESH padref);
-char **getlistnames(WINDOW *local_win, int row, int col, int numofmen, PAD_PRESH padref);
-void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH padref);
+void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary, PAD_PRESH *padref);
+int getname(WINDOW *local_win, char *strname, int maxchar, int boundary, int *delrow, int *delcol, PAD_PRESH *padref);
+char **getlistnames(WINDOW *local_win, int row, int col, int numofmen, PAD_PRESH *padref);
+void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH *padref);
 
 void salesman_table(WINDOW *local_win, int ymax, int xmax)
 {
@@ -30,7 +31,7 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
 	
 	
 	WINDOW* subpad1;
-	PAD_PRESH padref;
+	PAD_PRESH padref; //needed by getlistnames, getname, delCh
 	padref = get_prefresh();
 	char message[80];
 	char **listnames; 
@@ -73,7 +74,7 @@ Input how many products, input names of each products. (3)Input how many salesma
     lwinrow+=2;
     mvwprintw(local_win,lwinrow++,lwincol, "Enter Name ID of Salesman (e.g. bernsagax)");
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-    listnames=getlistnames(local_win, lwinrow, lwincol, totalSman,padref);
+    listnames=getlistnames(local_win, lwinrow, lwincol, totalSman, &padref);
     
 
     wrefresh(local_win);
@@ -98,15 +99,15 @@ int getSalesmanQtyF(WINDOW *local_win, int row, int col)
   
 }	  
 
-void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary){
-		PAD_PRESH padref;
-		padref = get_prefresh();
+void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary, PAD_PRESH *padref){
+		//PAD_PRESH padref;
+		//padref = get_prefresh();
 		
 		//Check if backspacing is out of bounds to input field	
 			if(*delcol<=delboundary){
 				*delcol=delboundary;
 				wmove(local_win,*delrow,delboundary); //set 
-				prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+				prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
 				
 			}
 			else{
@@ -116,7 +117,7 @@ void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *str
 					*charcount>0?(--(*charcount)):(*charcount=0);	
 					--(*strindex);
 									
-					prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);	
+					prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);	
 				}
 				else
 					*strindex=0;	
@@ -125,7 +126,7 @@ void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *str
 
 
 
-int getname(WINDOW *local_win, char *strname, int maxchar, int delboundary, int *delrow, int *delcol, PAD_PRESH padref){
+int getname(WINDOW *local_win, char *strname, int maxchar, int delboundary, int *delrow, int *delcol, PAD_PRESH *padref){
 	int c, charcount=0, strindex=0;
 	//char *startptr = strname;
 	while((c=wgetch(local_win))!='\n' && c != EOF){
@@ -133,7 +134,7 @@ int getname(WINDOW *local_win, char *strname, int maxchar, int delboundary, int 
 	    //check character input if reach limit
 		if(charcount>(maxchar-1)){
 			if(c == 127 || c ==KEY_BACKSPACE)
-				delCh(local_win, delrow, delcol, &charcount, &strindex, delboundary);
+				delCh(local_win, delrow, delcol, &charcount, &strindex, delboundary, padref);
 			else	
 				continue;
 		}    
@@ -147,10 +148,10 @@ int getname(WINDOW *local_win, char *strname, int maxchar, int delboundary, int 
 			wprintw(local_win,"%c",c);
 			++charcount;
 			(*delcol)++;
-			prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+			prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
 		}
 		else if(c==KEY_BACKSPACE || c==127){
-			delCh(local_win, delrow, delcol, &charcount, &strindex, delboundary);
+			delCh(local_win, delrow, delcol, &charcount, &strindex, delboundary, padref);
 		}	
 	}	 
 	if(c == '\n')
@@ -160,7 +161,7 @@ int getname(WINDOW *local_win, char *strname, int maxchar, int delboundary, int 
 	
 }
 
-char **getlistnames(WINDOW *local_win, int row, int col,int numOfmen, PAD_PRESH padref) {
+char **getlistnames(WINDOW *local_win, int row, int col,int numOfmen, PAD_PRESH *padref) {
 
 //for ordinals
  char ordinals[] = {'s','t','n','d','r','d','t','h'};
@@ -181,15 +182,16 @@ char **getlistnames(WINDOW *local_win, int row, int col,int numOfmen, PAD_PRESH 
 	 mvwprintw(local_win, row++, col, "Enter %d%c%c name: ",x, ordinals[ordvalue],ordinals[ordvalue+1]); //for prompt
 	 getyx(local_win, delrow, delcol);
      dellef_bndry=delcol;
-	 prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+	 prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
 	 
 	 if((lenname=getname(local_win, strname, MAXCHARNAME, dellef_bndry, &delrow, &delcol, padref))>1) // this means name had atleast one character
 	 {  
 		char *str = malloc((len+1)*sizeof(char)); 
 		strcpy(str,strname);  
 		listnames[j] = str;
-		mvwprintw(local_win, row++, col,"%d %d %s",j,lenname,listnames[j]);
-		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		mvwprintw(local_win, row, col,"%d %d row=%d %s",j,lenname,row,listnames[j]);
+		row++;
+		prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
 		
 	 }	
 	 else
@@ -203,9 +205,9 @@ char **getlistnames(WINDOW *local_win, int row, int col,int numOfmen, PAD_PRESH 
 
 }
 
-void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH padref){
+void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH *padref){
   mvwprintw(local_win,row++,col,"%s\n",message);  
-  prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+  prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
   
   exit(1);
 }		
