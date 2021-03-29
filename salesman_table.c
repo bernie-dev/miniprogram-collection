@@ -8,7 +8,9 @@
 /*March 25, 2021: getname(), delCh,getlistnames(): added/modified PADREF pointers */	
 /*March 26, 2021: Added trigger rows to scroll page nth times when near bottom of pad */
 /*March 28, 2021: make row variable in getlistnames() a pointer variable			 */		
-/*MArch 29, 2021: Change getSalesmanQtyF to getQtyF()								*/					
+/*MArch 29, 2021: Change getSalesmanQtyF to getQtyF()								*/		
+/*MArch 29, 2021: Added *message in getnQtyF()										*/	
+/*March 29, 2021: Added scrbot_checker() function, 									 */		
 
 
 #include "main_with_form.h"
@@ -17,11 +19,12 @@
 #define MAXCHARNAME 9
 #define MAXINPUTNAME 20
 
-int getQtyF(WINDOW *localwin, int row, int col, PAD_PRESH *padref); 
+int getQtyF(WINDOW *localwin, int row, int col, PAD_PRESH *padref, char *message); 
 void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary, PAD_PRESH *padref);
 int getname(WINDOW *local_win, char *strname, int maxchar, int boundary, int *delrow, int *delcol, PAD_PRESH *padref);
 char **getlistnames(WINDOW *local_win, int *row, int col, int numofmen, PAD_PRESH *padref);
 void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH *padref);
+void scrbot_checker(int *row, PAD_PRESH *padref);
 
 //GLOBAL VARIABLES
 int triggerline, oneline=1, triggerincrement; //for scrolling the pad whenever near bottom screen
@@ -32,7 +35,7 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
    //set locale for wide characters
    setlocale(LC_ALL, ""); 
    
-	int totalSman, subHeight=6, subWidth=xmax-2;
+	int totalSman, totalcpnyname, subHeight=6, subWidth=xmax-2;
 	int lwinrow,lwincol;
 	//char IntBuf[DIGITSIZE];
 	
@@ -68,14 +71,14 @@ Input how many products, input names of each products. (3)Input how many salesma
   /*END:Instruction inside the window; Beginning of the program*/		
    
     lwinrow=8;lwincol=1;   								
-    totalSman=getQtyF(local_win,lwinrow,lwincol,&padref);
+    totalSman=getQtyF(local_win,lwinrow,lwincol,&padref,"Enter number of salesman:");
     while(totalSman<=0){
 		sprintf(message,"Error: zero value not accepted. Exiting...");
 		errorMessage("Input zero not accepted");
 		//curs_set(0);
 		touchwin(subpad1);
 		wrefresh(local_win);
-		totalSman=getQtyF(local_win,lwinrow,lwincol, &padref);
+		totalSman=getQtyF(local_win,lwinrow,lwincol, &padref,"Enter number of salesman:");
 	}	
 	//for the salesman count
     mvwprintw(local_win,++lwinrow,lwincol,"Number of Salesman: %dtriggerline=%d,bottomscr=%d", totalSman,triggerline,bottomscr);
@@ -87,6 +90,22 @@ Input how many products, input names of each products. (3)Input how many salesma
     mvwprintw(local_win,lwinrow++,lwincol, "Enter Name ID of Salesman (e.g. bernsagax)");
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
     listnames=getlistnames(local_win, &lwinrow, lwincol, totalSman, &padref);
+    refresh();
+    //for company names
+    lwinrow++;
+    scrbot_checker(&lwinrow, &padref);
+    totalcpnyname=getQtyF(local_win, lwinrow,lwincol, &padref, "Enter number of Company:");
+    while(totalcpnyname<=0){
+		sprintf(message,"Error: zero value not accepted. Exiting...");
+		errorMessage("Input zero not accepted");
+		//curs_set(0);
+		touchwin(subpad1);
+		wrefresh(local_win);
+		totalcpnyname=getQtyF(local_win,lwinrow,lwincol, &padref,"Enter number of Company:");
+	}	
+    mvwprintw(local_win,++lwinrow,lwincol,"Number of Company: %d", totalcpnyname);
+    scrbot_checker(&lwinrow, &padref);
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
     refresh();
     
     
@@ -100,11 +119,11 @@ Input how many products, input names of each products. (3)Input how many salesma
 	return;
 } 
 
-int getQtyF(WINDOW *local_win, int row, int col, PAD_PRESH *padref)
+int getQtyF(WINDOW *local_win, int row, int col, PAD_PRESH *padref, char *message)
 {
   int total;
   
-  mvwprintw(local_win,row,col,"Enter number of salesman:" );
+  mvwprintw(local_win,row,col,"%s", message);
   prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
   total=inputIntegral(local_win,1,padon);
   return total;
@@ -190,10 +209,11 @@ char **getlistnames(WINDOW *local_win, int *row, int col,int numOfmen, PAD_PRESH
  for(j=0,x=1;j<numOfmen;j++,x++)
  {
 	 //start-scroll function in pad
-	 if(*row>=triggerline){
+	 /*if(*row>=triggerline){
 		padref->padystart = triggerline;
 		triggerline+=triggerincrement;
-	 }	
+	 }*/	
+	 scrbot_checker(row, padref);
 	 //end-scroll function in pad
 	 
 	 ordvalue=x<4? 2*(x-1):6;
@@ -221,6 +241,13 @@ char **getlistnames(WINDOW *local_win, int *row, int col,int numOfmen, PAD_PRESH
  
     return listnames;
 
+}
+
+void scrbot_checker(int *row, PAD_PRESH *padref){
+	if(*row>=triggerline){
+		padref->padystart=triggerline;
+		triggerline+=triggerincrement;
+	}
 }
 
 void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH *padref){
