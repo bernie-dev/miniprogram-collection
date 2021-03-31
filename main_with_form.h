@@ -6,6 +6,8 @@
 /*Bernard Saga: March 04, 2021: Remove parentwin param in inputInteg(),deleteChar()			*/
 /*Bernard Saga: March 17, 2021: Added value shadowFlag in datatype WIN for window shadow creation */
 /*Bernard Saga: March 17, 2021: Added shadow_window prototype								 */
+/*Bernard Saga: March 31, 2021: Change inputIntegral and delChar parameters to be pad exclusive only	*/
+/*Bernard Saga: March 31, 2021: delete padon/padoff  constants									*/				
 
 
 #define _XOPEN_SOURCE_EXTENDED	//for ncursesw, for wide characters; must declared before any preprocessor directives
@@ -29,8 +31,6 @@
 #define size 3
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 #define CTRLD 4
-#define padon 1
-#define padoff 0
 
 typedef struct _WIN_struct{
     int startx,starty;  
@@ -73,8 +73,8 @@ int func_exit(MENU *, ITEM **, int choices, WINDOW*, WINDOW* win[], WINDOW*); //
 void description_list(WINDOW *, char *);
 void bomb(char *);
 void padwin_func(WINDOW* padwin);
-void deleteChar(WINDOW* win, int *row, int *col, int* charcnt, int delbound, int* DecimalFlag, int* dcnt, int* wcnt, int padflag);
-double inputIntegral(WINDOW* win, int limit, int padflag);
+void deleteChar(WINDOW* win, int *row, int *col, int* charcnt, int delbound, int* DecimalFlag, int* dcnt, int* wcnt, PAD_PRESH *padref);
+double inputIntegral(WINDOW* win, int limit, PAD_PRESH *padref);
 PAD_PRESH get_prefresh(void); //for prefresh for parent;
 void window_shadow(WIN *attr, WINDOW *parentwin);
 void errorMessage(char *message);

@@ -125,7 +125,7 @@ int getQtyF(WINDOW *local_win, int row, int col, PAD_PRESH *padref, char *messag
   
   mvwprintw(local_win,row,col,"%s", message);
   prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
-  total=inputIntegral(local_win,1,padon);
+  total=inputIntegral(local_win,1,padref);
   return total;
   
 }	  

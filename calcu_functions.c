@@ -7,6 +7,8 @@
 /*Bernard Saga: Mar 03, 2021: Added comment for git excercices						  	  */
 /*Bernard Saga: Mar 04, 2021: Remove subpad prefreshing in interest_calc_win			  */ 
 /*Bernard Saga: mar 04, 2021: Remove parent win param in inputInteg() and deleteChar()	  */
+/*Bernard Saga: March 31, 2021: Changes in inputIntegral function: make it pad window exclusive	*/
+/*Bernard Saga: March 31, 2021: Changes in deleteChar function: make it pad window exclusive     */
 
 
 #include "main_with_form.h"
@@ -44,16 +46,16 @@ void interest_calc_win(WINDOW *local_win, int maxrow, int maxcol ) //row 0, col 
   
   mvwprintw(local_win,row++,col,"Enter Principal:");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);	
-  principal=inputIntegral(local_win, maxinput,padon);
+  principal=inputIntegral(local_win, maxinput,&padref);
   mvwprintw(local_win,row++,col,"%.2f",principal);
   mvwprintw(local_win,row,col,"Enter Rate(in %):");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-  rate=inputIntegral(local_win, maxinput,padon);
+  rate=inputIntegral(local_win, maxinput,&padref);
   row++;
   mvwprintw(local_win,row++,col,"%.2f%%",rate);
   mvwprintw(local_win,row,col,"Enter No. years:");
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-  numYrs=inputIntegral(local_win,2,padon);
+  numYrs=inputIntegral(local_win,2,&padref);
   row++;
   mvwprintw(local_win,row++,col,"%d",numYrs);
   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
@@ -259,9 +261,8 @@ void bomb(char *message)
  }
  
  
- void deleteChar(WINDOW* win, int* row, int* col, int* charcount, int delboundary, int* DecimalFlag, int* dcnt, int* wcnt, int padflag){
-		PAD_PRESH padref;
-		padref = get_prefresh();
+ void deleteChar(WINDOW* win, int* row, int* col, int* charcount, int delboundary, int* DecimalFlag, int* dcnt, int* wcnt, PAD_PRESH *padref)
+ {
 		
 		//Check if backspacing is out of bounds to input field	
 			if(*col<=delboundary){
@@ -293,27 +294,20 @@ void bomb(char *message)
 					else 						//wcnt is negative
 						*wcnt=0;		
 				}
-				   if(padflag==padon)
-					{prefresh(win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}	
-				   else
-					{refresh();
-					 wrefresh(win);}
+					prefresh(win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
 		}		
 
 }	
 
-double inputIntegral(WINDOW* win, int maxsize, int padflag){
+double inputIntegral(WINDOW* win, int maxsize, PAD_PRESH *padref){
 	 
-  //int maxrow, maxcol;
-  PAD_PRESH padref;							//for the parentwin
- // getmaxyx(win,maxrow,maxcol);	 
-  padref = get_prefresh();
+  /*note:you get pad_presh from the caller function*/
 	  
   /*START: External variables for InputIntegral Functions and delete Functions :START */
-  int DecimalFlag=0; 				 //values:1 or 0: default value is 0 meaning use integerArray
+  int DecimalFlag=0; 				 //values:1 or 0: default value is 0, meaning use integerArray
 
   /*Arrays for WholeNumbers and DecimalNumbers */
-  int WholeNArr[maxsize+1]; //0-7;8 if for NULL
+  int WholeNArr[maxsize+1]; //0-7;8 if for NULL; this will be maxsize+1 character digits
   int DecimalArr[maxsize+1];
 
   /*counters for the arrays*/
@@ -334,7 +328,7 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
 	 //check character input if reach limit
 	 if(charcount>maxsize){
 		 if(ch == 127 || ch == KEY_BACKSPACE){
-			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
+			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padref);
 		 }	
 		else	
 			continue;
@@ -349,12 +343,8 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
 		 
 		 /*Check decimal flag: if 1, assign value to Decimal Array */
 		 DecimalFlag==1?(DecimalArr[++dcnt]=ch):(WholeNArr[wcnt++]=ch);
-		 
-		 	if(padflag==padon)
-				{prefresh(win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}
-			else	
-				{wrefresh(win);}	
-
+		 //diplay ouput in wprintw		 
+		 prefresh(win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
 	 }
 	 else if(ch ==46){ 				//46 is a period/point in ascii
 		 if(DecimalFlag==1)			//if decimalFlag is 1 meaning it already encountered a pointa and has not been deleted
@@ -364,14 +354,12 @@ double inputIntegral(WINDOW* win, int maxsize, int padflag){
 			wprintw(win,"%c",ch);	//print the period
 			++charcount;
 			col++;
-				if(padflag==padon)
-					{prefresh(win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);}
-				else	
-					{wrefresh(win);}	
+			prefresh(win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
+	
 		}
 	}	 	
 	else if(ch==KEY_BACKSPACE || ch==127){
-			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padon);
+			deleteChar(win, &row, &col, &charcount, delboundary, &DecimalFlag, &dcnt, &wcnt, padref);
 	}
   }	
   
