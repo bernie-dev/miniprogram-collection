@@ -147,15 +147,7 @@ Input how many products, input names of each products. (3)Input how many salesma
 		
 	}	
     
-    /*printf("Enter how many sold products for this company under this salesperson:\n");	
-	for(n=0;n<nameTotal;n++) //row
-	{ for(j=0;j<modelTotal;j++) //column
-	  {
-		  printf("For %s,%s: ",nameptr[n],compptr[j]);
-		  Arr[n][j] = getnum(IntBuf, DGTSIZE);  
-	  }   	 
-	}*/	
-    
+
 		
     refresh();
     
