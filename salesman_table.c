@@ -13,6 +13,7 @@
 /*March 29, 2021: Added scrbot_checker() function, 									 */		
 /*March 31, 2021: Change getlistnames parameter to accept character limit			*/
 /*April 1, 2021: Initialized array pointers for quantity products for each salesman 	*/
+/*April 3, 2021: Added non table soft copy of final output							*/
 
 
 #include "main_with_form.h"
@@ -20,6 +21,7 @@
 #define MAXINPUT 8
 #define MAXCHARNAME 9
 #define MAXINPUTNAME 20
+#define PricCommCol 2
 
 int getQtyF(WINDOW *localwin, int row, int col, PAD_PRESH *padref, char *message); 
 void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary, PAD_PRESH *padref);
@@ -49,8 +51,10 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
 	char **listnames;
 	char **listprodnames; 
 	int **QntyPrdctSold;
+	double **PriceComisArr;
+	double **FinalResultArr;
 	int charlimname = 9, charlimprod=10;
-	int i=0,n=0,j=0;
+	int i=0,n=0,j=0,k=0;
 	
 	
 	//create values for triggerline
@@ -128,27 +132,90 @@ Input how many products, input names of each products. (3)Input how many salesma
     scrbot_checker(&lwinrow, &padref);
     
     //initiation: assign memory to pointer array base on totalprodname and totalSman
-    QntyPrdctSold=malloc(totalSman * sizeof(*QntyPrdctSold)); // allocate memory to array
+    QntyPrdctSold=malloc(totalSman * sizeof(*QntyPrdctSold)); // allocate memory to array, holds quantity of product sold by each salesman
+    //assign memory to each pointer members of QntyPrdctSold
     for(i=0;i<totalSman;i++){
 	   QntyPrdctSold[i]=malloc(totalprodname * sizeof(*QntyPrdctSold));   	
 	}	
     
-    mvwprintw(local_win, lwinrow,lwincol,"How many items sold by salesman for each product?");
+    mvwprintw(local_win, lwinrow,lwincol,"Input Total sold by salesman for each product");
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
     for(n=0;n<totalSman;n++) //row
     { for(j=0;j<totalprodname;j++) //col
 		{
-		   	mvwprintw(local_win, ++lwinrow, lwincol, "%s's number of unit sold for product %s: ", *(listnames+n), *(listprodnames+j));
+		   	mvwprintw(local_win, ++lwinrow, lwincol, "%s's total sold for %s: ", *(listnames+n), *(listprodnames+j));
 		   	scrbot_checker(&lwinrow, &padref);
 		   	prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-		   	QntyPrdctSold[n][j]=inputIntegral(local_win,1,&padref);
+		   	QntyPrdctSold[n][j]=inputIntegral(local_win,1,&padref); //for each salesman there are totalprodname values that represents the products
 		   	
 		}	
 		
 	}	
     
-
+    //Enter price for each product
+    lwinrow+=2;
+    scrbot_checker(&lwinrow, &padref);
+    //Initiation and assigning memory for array that holds price and commission values
+    PriceComisArr=malloc(totalprodname * sizeof(*PriceComisArr));
+    for(i=0;i<totalprodname;i++){
+	   PriceComisArr[i]=malloc(PricCommCol * sizeof(*PriceComisArr));   	
+	}
+	mvwprintw(local_win, lwinrow,lwincol,"Input price for each product");
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+	for(i=0;i<totalprodname;i++){
+		mvwprintw(local_win, ++lwinrow, lwincol, "Price of %s :", listprodnames[i] );
+		scrbot_checker(&lwinrow, &padref);
+		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		PriceComisArr[i][0] = inputIntegral(local_win,5,&padref);
+	}		
+    
+    //Enter commission you get for each product 
+    lwinrow+=2;
+    scrbot_checker(&lwinrow, &padref);
+    mvwprintw(local_win, lwinrow,lwincol,"Input commission number for each product");
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    for(i=0;i<totalprodname;i++){
+		mvwprintw(local_win, ++lwinrow, lwincol, "Salesman commission get for %s :", listprodnames[i] );
+		scrbot_checker(&lwinrow, &padref);
+		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		PriceComisArr[i][1] = inputIntegral(local_win,5,&padref);
+	}		 
+    
+    
+    //Allocate memory to double pointer array for the final result
+    FinalResultArr=malloc(totalSman * sizeof(*FinalResultArr));
+    for(i=0;i<totalSman;i++){
+		FinalResultArr[i]=malloc(PricCommCol * sizeof(*FinalResultArr));	
+	}	
+    
+    //compute
+    for(i=0;i<PricCommCol;i++) //table is only two columns because of ouput is final sum of products and commision
+    {   for(j=0;j<totalSman;j++)
+		{   for(k=0;k<totalprodname;k++)
+			{
+			   FinalResultArr[j][i]+=QntyPrdctSold[j][k] * PriceComisArr[k][i];// total sold by salesman when all their products combined
+			   //firstly, multiply the price and each individual product of a salesman then add it to Finalresult first column of every row
+			   // every row in FinalResultArr represents the salesman
+			   //the first column represents final total sold of each salesman and the second column reps final commission they will get
+			   
+			}	
+			
+		}	
 		
+	}	
+    
+    //Display TAble
+    lwinrow+=2;
+    scrbot_checker(&lwinrow, &padref);
+    mvwprintw(local_win, lwinrow,lwincol,"Final output");
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    
+    for(i=0;i<totalSman;i++){
+		mvwprintw(local_win, lwinrow++,lwincol,"%.2f \t %.2f", FinalResultArr[i][0], FinalResultArr[i][1]);
+		scrbot_checker(&lwinrow, &padref);
+		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		
+	}	
     refresh();
     
     
