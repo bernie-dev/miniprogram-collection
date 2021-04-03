@@ -11,6 +11,9 @@
 /*MArch 29, 2021: Change getSalesmanQtyF to getQtyF()								*/		
 /*MArch 29, 2021: Added *message in getnQtyF()										*/	
 /*March 29, 2021: Added scrbot_checker() function, 									 */		
+/*March 31, 2021: Change getlistnames parameter to accept character limit			*/
+/*April 1, 2021: Initialized array pointers for quantity products for each salesman 	*/
+/*April 3, 2021: Added non table soft copy of final output							*/
 
 
 #include "main_with_form.h"
@@ -18,11 +21,12 @@
 #define MAXINPUT 8
 #define MAXCHARNAME 9
 #define MAXINPUTNAME 20
+#define PricCommCol 2
 
 int getQtyF(WINDOW *localwin, int row, int col, PAD_PRESH *padref, char *message); 
 void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary, PAD_PRESH *padref);
 int getname(WINDOW *local_win, char *strname, int maxchar, int boundary, int *delrow, int *delcol, PAD_PRESH *padref);
-char **getlistnames(WINDOW *local_win, int *row, int col, int numofmen, PAD_PRESH *padref);
+char **getlistnames(WINDOW *local_win, int *row, int col, int numofmen, int charlimit, PAD_PRESH *padref);
 void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH *padref);
 void scrbot_checker(int *row, PAD_PRESH *padref);
 
@@ -35,7 +39,7 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
    //set locale for wide characters
    setlocale(LC_ALL, ""); 
    
-	int totalSman, totalcpnyname, subHeight=6, subWidth=xmax-2;
+	int totalSman, totalprodname, subHeight=6, subWidth=xmax-2;
 	int lwinrow,lwincol;
 	//char IntBuf[DIGITSIZE];
 	
@@ -44,8 +48,14 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
 	PAD_PRESH padref; //needed by getlistnames, getname, delCh
 	padref = get_prefresh();
 	char message[80];
-	char **listnames; 
-	//int ch;
+	char **listnames;
+	char **listprodnames; 
+	int **QntyPrdctSold;
+	double **PriceComisArr;
+	double **FinalResultArr;
+	int charlimname = 9, charlimprod=10;
+	int i=0,n=0,j=0,k=0;
+	
 	
 	//create values for triggerline
 	int bottomscr = padref.HEIGHT-3; //output is 18
@@ -89,23 +99,123 @@ Input how many products, input names of each products. (3)Input how many salesma
     lwinrow+=2;
     mvwprintw(local_win,lwinrow++,lwincol, "Enter Name ID of Salesman (e.g. bernsagax)");
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
-    listnames=getlistnames(local_win, &lwinrow, lwincol, totalSman, &padref);
+    listnames=getlistnames(local_win, &lwinrow, lwincol, totalSman, charlimname, &padref);
     refresh();
-    //for company names
+    //for product count
     lwinrow++;
     scrbot_checker(&lwinrow, &padref);
-    totalcpnyname=getQtyF(local_win, lwinrow,lwincol, &padref, "Enter number of Company:");
-    while(totalcpnyname<=0){
+    totalprodname=getQtyF(local_win, lwinrow,lwincol, &padref, "Enter number of distinct items to be sold:");
+    while(totalprodname<=0){
 		sprintf(message,"Error: zero value not accepted. Exiting...");
 		errorMessage("Input zero not accepted");
 		//curs_set(0);
 		touchwin(subpad1);
 		wrefresh(local_win);
-		totalcpnyname=getQtyF(local_win,lwinrow,lwincol, &padref,"Enter number of Company:");
+		totalprodname=getQtyF(local_win,lwinrow,lwincol, &padref,"Enter number of distinct items to be sold:");
 	}	
-    mvwprintw(local_win,++lwinrow,lwincol,"Number of Company: %d", totalcpnyname);
+    mvwprintw(local_win,++lwinrow,lwincol,"Total number of items: %d", totalprodname);
     scrbot_checker(&lwinrow, &padref);
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    
+    //for the collection products string name
+    lwinrow++;
+    scrbot_checker(&lwinrow, &padref);
+    mvwprintw(local_win, ++lwinrow,lwincol, "Enter product names:");
+    scrbot_checker(&lwinrow, &padref);
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    ++lwinrow;
+    scrbot_checker(&lwinrow, &padref);
+    listprodnames=getlistnames(local_win, &lwinrow, lwincol, totalprodname, charlimprod, &padref);
+    
+    //How many items sold by each salesman for each products?
+    lwinrow++;
+    scrbot_checker(&lwinrow, &padref);
+    
+    //initiation: assign memory to pointer array base on totalprodname and totalSman
+    QntyPrdctSold=malloc(totalSman * sizeof(*QntyPrdctSold)); // allocate memory to array, holds quantity of product sold by each salesman
+    //assign memory to each pointer members of QntyPrdctSold
+    for(i=0;i<totalSman;i++){
+	   QntyPrdctSold[i]=malloc(totalprodname * sizeof(*QntyPrdctSold));   	
+	}	
+    
+    mvwprintw(local_win, lwinrow,lwincol,"Input Total sold by salesman for each product");
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    for(n=0;n<totalSman;n++) //row
+    { for(j=0;j<totalprodname;j++) //col
+		{
+		   	mvwprintw(local_win, ++lwinrow, lwincol, "%s's total sold for %s: ", *(listnames+n), *(listprodnames+j));
+		   	scrbot_checker(&lwinrow, &padref);
+		   	prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		   	QntyPrdctSold[n][j]=inputIntegral(local_win,1,&padref); //for each salesman there are totalprodname values that represents the products
+		   	
+		}	
+		
+	}	
+    
+    //Enter price for each product
+    lwinrow+=2;
+    scrbot_checker(&lwinrow, &padref);
+    //Initiation and assigning memory for array that holds price and commission values
+    PriceComisArr=malloc(totalprodname * sizeof(*PriceComisArr));
+    for(i=0;i<totalprodname;i++){
+	   PriceComisArr[i]=malloc(PricCommCol * sizeof(*PriceComisArr));   	
+	}
+	mvwprintw(local_win, lwinrow,lwincol,"Input price for each product");
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+	for(i=0;i<totalprodname;i++){
+		mvwprintw(local_win, ++lwinrow, lwincol, "Price of %s :", listprodnames[i] );
+		scrbot_checker(&lwinrow, &padref);
+		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		PriceComisArr[i][0] = inputIntegral(local_win,5,&padref);
+	}		
+    
+    //Enter commission you get for each product 
+    lwinrow+=2;
+    scrbot_checker(&lwinrow, &padref);
+    mvwprintw(local_win, lwinrow,lwincol,"Input commission number for each product");
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    for(i=0;i<totalprodname;i++){
+		mvwprintw(local_win, ++lwinrow, lwincol, "Salesman commission get for %s :", listprodnames[i] );
+		scrbot_checker(&lwinrow, &padref);
+		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		PriceComisArr[i][1] = inputIntegral(local_win,5,&padref);
+	}		 
+    
+    
+    //Allocate memory to double pointer array for the final result
+    FinalResultArr=malloc(totalSman * sizeof(*FinalResultArr));
+    for(i=0;i<totalSman;i++){
+		FinalResultArr[i]=malloc(PricCommCol * sizeof(*FinalResultArr));	
+	}	
+    
+    //compute
+    for(i=0;i<PricCommCol;i++) //table is only two columns because of ouput is final sum of products and commision
+    {   for(j=0;j<totalSman;j++)
+		{   for(k=0;k<totalprodname;k++)
+			{
+			   FinalResultArr[j][i]+=QntyPrdctSold[j][k] * PriceComisArr[k][i];// total sold by salesman when all their products combined
+			   //firstly, multiply the price and each individual product of a salesman then add it to Finalresult first column of every row
+			   // every row in FinalResultArr represents the salesman
+			   //the first column represents final total sold of each salesman and the second column reps final commission they will get
+			   
+			}	
+			
+		}	
+		
+	}	
+    
+    //Display TAble
+    lwinrow+=2;
+    scrbot_checker(&lwinrow, &padref);
+    mvwprintw(local_win, lwinrow,lwincol,"Final output");
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    
+    for(i=0;i<totalSman;i++){
+		mvwprintw(local_win, lwinrow++,lwincol,"%.2f \t %.2f", FinalResultArr[i][0], FinalResultArr[i][1]);
+		scrbot_checker(&lwinrow, &padref);
+		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		
+	}	
     refresh();
     
     
@@ -192,11 +302,11 @@ int getname(WINDOW *local_win, char *strname, int maxchar, int delboundary, int 
 	
 }
 
-char **getlistnames(WINDOW *local_win, int *row, int col,int numOfmen, PAD_PRESH *padref) {
+char **getlistnames(WINDOW *local_win, int *row, int col, int numOfmen, int charlimit, PAD_PRESH *padref) {
 
 //for ordinals
  char ordinals[] = {'s','t','n','d','r','d','t','h'};
- char strname[MAXCHARNAME];
+ char strname[charlimit];
  int j,x,ordvalue,lenname;
  int delrow, delcol;
  int dellef_bndry;
@@ -217,12 +327,12 @@ char **getlistnames(WINDOW *local_win, int *row, int col,int numOfmen, PAD_PRESH
 	 //end-scroll function in pad
 	 
 	 ordvalue=x<4? 2*(x-1):6;
-	 mvwprintw(local_win, (*row)++, col, "Enter %d%c%c name: ",x, ordinals[ordvalue],ordinals[ordvalue+1]); //for prompt
+	 mvwprintw(local_win, (*row)++, col, "Enter %d%c%c value: ",x, ordinals[ordvalue],ordinals[ordvalue+1]); //for prompt
 	 getyx(local_win, delrow, delcol);
      dellef_bndry=delcol;
 	 prefresh(local_win,padref->padystart,padref->padxstart,	padref->screenystart,padref->screenxstart,	padref->HEIGHT,padref->WIDTH);
 	 
-	 if((lenname=getname(local_win, strname, MAXCHARNAME, dellef_bndry, &delrow, &delcol, padref))>1) // this means name had atleast one character
+	 if((lenname=getname(local_win, strname, charlimit, dellef_bndry, &delrow, &delcol, padref))>1) // this means name had atleast one character
 	 {  
 		char *str = malloc((len+1)*sizeof(char)); 
 		strcpy(str,strname);  
