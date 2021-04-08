@@ -1,27 +1,29 @@
-/*Febru.01, 2021: Salesman TAble function needs a new separate program        */
-/*Febru.08, 2021: modified number collection function (upgraded version)      */
-/*March 15, 2021: Modified windows to become pads 							  */
-/*March 16, 2021: Modified max character for InputIntegral for salesman_Table */
-/*March 18, 2021: Create Fucnction for getting input for how many the salesman */
-/*March 23, 2021: Added function getlistnames(),getname() for name collection   */ 
-/*March 24, 2021: Added delCh() function										*/		
-/*March 25, 2021: getname(), delCh,getlistnames(): added/modified PADREF pointers */	
-/*March 26, 2021: Added trigger rows to scroll page nth times when near bottom of pad */
-/*March 28, 2021: make row variable in getlistnames() a pointer variable			 */		
-/*MArch 29, 2021: Change getSalesmanQtyF to getQtyF()								*/		
-/*MArch 29, 2021: Added *message in getnQtyF()										*/	
-/*March 29, 2021: Added scrbot_checker() function, 									 */		
-/*March 31, 2021: Change getlistnames parameter to accept character limit			*/
+/*Febru.01, 2021: Salesman TAble function needs a new separate program        			*/
+/*Febru.08, 2021: modified number collection function (upgraded version)      			*/
+/*March 15, 2021: Modified windows to become pads 							  			*/
+/*March 16, 2021: Modified max character for InputIntegral for salesman_Table 			*/
+/*March 18, 2021: Create Fucnction for getting input for how many the salesman 			*/
+/*March 23, 2021: Added function getlistnames(),getname() for name collection   		*/ 
+/*March 24, 2021: Added delCh() function												*/		
+/*March 25, 2021: getname(), delCh,getlistnames(): added/modified PADREF pointers 		*/	
+/*March 26, 2021: Added trigger rows to scroll page nth times when near bottom of pad	*/
+/*March 28, 2021: make row variable in getlistnames() a pointer variable			 	*/		
+/*MArch 29, 2021: Change getSalesmanQtyF to getQtyF()									*/		
+/*MArch 29, 2021: Added *message in getnQtyF()											*/	
+/*March 29, 2021: Added scrbot_checker() function, 										*/		
+/*March 31, 2021: Change getlistnames parameter to accept character limit				*/
 /*April 1, 2021: Initialized array pointers for quantity products for each salesman 	*/
-/*April 3, 2021: Added non table soft copy of final output							*/
+/*April 3, 2021: Added non table soft copy of final output								*/
+/*April 8, 2021: Added subpad for the final output table								*/
+/*April 8, 2021: Added navigation at the end after the table output						*/
 
 
 #include "main_with_form.h"
 #define DIGITSIZE 3
 #define MAXINPUT 8
 #define MAXCHARNAME 9
-#define MAXINPUTNAME 20
 #define PricCommCol 2
+#define taab "    "
 
 int getQtyF(WINDOW *localwin, int row, int col, PAD_PRESH *padref, char *message); 
 void delCh(WINDOW* local_win, int* delrow, int* delcol, int* charcount, int *strindex, int delboundary, PAD_PRESH *padref);
@@ -45,6 +47,7 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
 	
 	
 	WINDOW* subpad1;
+	WINDOW* tablepad;
 	PAD_PRESH padref; //needed by getlistnames, getname, delCh
 	padref = get_prefresh();
 	char message[80];
@@ -55,6 +58,7 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
 	double **FinalResultArr;
 	int charlimname = 9, charlimprod=10;
 	int i=0,n=0,j=0,k=0;
+	int navch,rowpadnav,scrolluplimit;
 	
 	
 	//create values for triggerline
@@ -204,20 +208,101 @@ Input how many products, input names of each products. (3)Input how many salesma
 		
 	}	
     
-    //Display TAble
+    //Summary of Input 
+    //list of salesman, list of product names, list of total of product solds, list of price, list of commission base on quantity not price
     lwinrow+=2;
+    scrbot_checker(&lwinrow, &padref);
+    scrolluplimit = lwinrow;
+    //for label of summary need to be in center. ymax, xmax
+    mvwprintw(local_win, lwinrow, (xmax-13)/2,"Summary Input");
+    mvwprintw(local_win, ++lwinrow,lwincol, "List of Salesman's name");
+    scrbot_checker(&lwinrow, &padref);
+    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+    //list all the salesman names
+    for(i=0;i<totalSman;i++){
+	     mvwprintw(local_win, ++lwinrow,lwincol, "%s ", listnames[i]);
+	     scrbot_checker(&lwinrow, &padref);
+	     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+	}
+	lwinrow+=2;
+	scrbot_checker(&lwinrow, &padref);
+	mvwprintw(local_win, lwinrow,lwincol, "List of products name, price and ");
+	prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+	//list all the product names
+    for(i=0,j=0;i<totalprodname;i++){
+	     mvwprintw(local_win, ++lwinrow,lwincol, "name: %s   price: %.2f commission: %.2f", listprodnames[i],PriceComisArr[i][j], PriceComisArr[i][j+1]);
+	     scrbot_checker(&lwinrow, &padref);
+	     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+				
+	}
+		
+    
+    
+    //Display TAble
+    
+    
+    /*lwinrow+=2;
     scrbot_checker(&lwinrow, &padref);
     mvwprintw(local_win, lwinrow,lwincol,"Final output");
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
     
     for(i=0;i<totalSman;i++){
-		mvwprintw(local_win, lwinrow++,lwincol,"%.2f \t %.2f", FinalResultArr[i][0], FinalResultArr[i][1]);
+		mvwprintw(local_win, ++lwinrow,lwincol,"%.2f \t %.2f", FinalResultArr[i][0], FinalResultArr[i][1]);
 		scrbot_checker(&lwinrow, &padref);
 		prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
 		
-	}	
-    refresh();
-    
+	}*/	
+	
+	//April 7, 2021
+  //Creation of table
+  //assign the table at the top of the screen
+  padref.padystart=++lwinrow;
+  
+   /*START########## Create a Subpad for table output ######################START*/
+    tablepad=subpad(local_win,totalSman+5,subWidth,lwinrow+1,1);    							
+    if(tablepad==NULL)									
+  		bomb("Unable to create subpad");	
+  																	
+    keypad(tablepad,TRUE);								
+    wbkgd(tablepad,COLOR_PAIR(19)); 
+    win_border(tablepad,0);
+   /*END########### Create a Subpad for table output #########################END*/
+   
+   mvwprintw(tablepad, 1, (subWidth-12)/2,"Output Table");
+   mvwadd_wch(tablepad,2,0, WACS_T_LTEE);
+   mvwhline_set(tablepad, 2, 1, WACS_T_HLINE, subWidth-2); 
+   mvwadd_wch(tablepad, 2,subWidth-1, WACS_D_RTEE);
+   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+   touchwin(tablepad);
+   wrefresh(local_win);
+   
+   
+   //set the output screen at the top 
+   padref.padystart=scrolluplimit;
+   prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+   
+   //navigation mode
+   /*START############## NAVIGATION OF PROGRAM ##########################START*/
+   
+   rowpadnav = padref.padystart;
+   while((navch=wgetch(local_win))!='q')
+   {
+		switch(navch)
+		{
+		 case KEY_UP:
+			if(rowpadnav>scrolluplimit)
+			   { rowpadnav--;   }
+			else
+			   { rowpadnav=scrolluplimit; }	
+			prefresh(local_win, rowpadnav,padref.padxstart ,  padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		 break;
+		 case KEY_DOWN:
+			rowpadnav++;
+			prefresh(local_win, rowpadnav,padref.padxstart ,  padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
+		 break; 					
+		}	
+	}
+  /*END############### NAVIGATION OF PROGRAM ##############################END */
     
 
     wrefresh(local_win);
@@ -319,10 +404,6 @@ char **getlistnames(WINDOW *local_win, int *row, int col, int numOfmen, int char
  for(j=0,x=1;j<numOfmen;j++,x++)
  {
 	 //start-scroll function in pad
-	 /*if(*row>=triggerline){
-		padref->padystart = triggerline;
-		triggerline+=triggerincrement;
-	 }*/	
 	 scrbot_checker(row, padref);
 	 //end-scroll function in pad
 	 
@@ -345,7 +426,6 @@ char **getlistnames(WINDOW *local_win, int *row, int col, int numOfmen, int char
 	 else
 	   SalesmanErrorMessage(local_win, *row, col, "Input zero not accepted", padref); 
 	  
-
  }	
 
  
