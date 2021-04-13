@@ -18,6 +18,7 @@
 /*April 8, 2021: Added navigation at the end after the table output						*/
 /*April 9, 2021: Added dynamic size computation to tablepad window						*/
 /*April 13, 2021: Added Table A function												*/
+/*April 14, 2021: Fix column and value issue in Table A									*/
 
 
 #include "main_with_form.h"
@@ -476,10 +477,10 @@ void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PA
 void createTableA(WINDOW* tablepad,int numproduct, int numsman, char **listnames, char **listprodnames, int **QntyPrdctSold, int prodnamecounter)
 {   
 	int currow, curcol, tpadrow,tpadcol;
-	int lengthstr,rightcollimit,lastproduct=0,numprodval;
+	int lengthstr,rightcollimit,lastproduct=0;
 	int fieldremaining,productcharlimit=9;
 	int productlimit=numproduct;
-	int i=0,j=0,proddigit,intcount=0;
+	int i=0,j=0,proddigit,intcount=0, totprodval=0;
 	
 	getmaxyx(tablepad, tpadrow, tpadcol);
 	rightcollimit=tpadcol-2; //left margin column
@@ -509,29 +510,25 @@ void createTableA(WINDOW* tablepad,int numproduct, int numsman, char **listnames
 	
 	//this is the part where salesman name and product numbers is in column
 	//at the start, set one line line below the column labels
-	currow++,curcol=1;;
-	//set column limits for the numbers sold for each salesman
-	if(lastproduct)//if lastproduct has value
-		numprodval=lastproduct;
-	else
-		numprodval=numproduct;	
+	currow++,curcol=1;
+	if(lastproduct)
+	   totprodval=lastproduct;
+    else
+	   totprodval=numproduct;	
 		
 	//for the rows and column
     for(i=0;i<numsman;i++){
-        for(j=0;j<numprodval;j++){
-	       if(j==0) //first column of every row contains the salesman title and the first value of the column
-	       {
-			 //for the salesman name for every row
-			 lengthstr=strlen(listnames[i]);
-			 mvwprintw(tablepad, currow,curcol,"%s",listnames[i]);
-			 fieldremaining=productcharlimit-lengthstr;  //compute maxchar and string length of product name
-	         while(fieldremaining>0){    //fill the remaining char with space every name
-			 wprintw(tablepad," ");
-			 fieldremaining--;
-	         }		
-	         wprintw(tablepad, "|");
-	         //end-for the salesman name for every row
-	         
+		//for the salesman name for every row
+		lengthstr=strlen(listnames[i]);
+		mvwprintw(tablepad, currow,curcol,"%s",listnames[i]);
+		fieldremaining=productcharlimit-lengthstr;  //compute maxchar and string length of product name
+	    while(fieldremaining>0){    //fill the remaining char with space every name
+			wprintw(tablepad," ");
+			fieldremaining--;
+	    }		
+	    wprintw(tablepad, "|");
+	    //end-for the salesman name for every row
+        for(j=prodnamecounter;j<totprodval;j++){   
 	         //first product value after the row salesman names: column 0
 	         proddigit=QntyPrdctSold[i][j]; //get the value
 	         //count the digits for character space
@@ -550,32 +547,7 @@ void createTableA(WINDOW* tablepad,int numproduct, int numsman, char **listnames
 				 --fieldremaining; 
 			 }
 			 wprintw(tablepad, "|");
-			 intcount=0;	 
-	         	   
-		   }
-		   else{
-			   
-			 proddigit=QntyPrdctSold[i][j]; //get the value
-	         //count the digits for character space
-	         if(proddigit==0){
-	             intcount=1;}
-	         else{    
-				while(proddigit){
-					proddigit/=10;
-					intcount++; // digit count
-				}	 
-	         }
-	         wprintw(tablepad,"%d",QntyPrdctSold[i][j]);
-	         fieldremaining=productcharlimit-intcount;
-	         while(fieldremaining>0){
-				 wprintw(tablepad," ");
-				 --fieldremaining; 
-			 }
-			 wprintw(tablepad, "|");
-			 intcount=0;	 
-	         	   
-		   }
-			   
+			 intcount=0;	 		   
 			   
         }	      
 		 currow++;   
