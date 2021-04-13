@@ -16,6 +16,8 @@
 /*April 3, 2021: Added non table soft copy of final output								*/
 /*April 8, 2021: Added subpad for the final output table								*/
 /*April 8, 2021: Added navigation at the end after the table output						*/
+/*April 9, 2021: Added dynamic size computation to tablepad window						*/
+/*April 13, 2021: Added Table A function												*/
 
 
 #include "main_with_form.h"
@@ -31,6 +33,7 @@ int getname(WINDOW *local_win, char *strname, int maxchar, int boundary, int *de
 char **getlistnames(WINDOW *local_win, int *row, int col, int numofmen, int charlimit, PAD_PRESH *padref);
 void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PAD_PRESH *padref);
 void scrbot_checker(int *row, PAD_PRESH *padref);
+void createTableA(WINDOW* tablepad,int numproduct, int numsman, char **listnames, char **listprodnames, int **QntyPrdctSold, int prodnamecounter);
 
 //GLOBAL VARIABLES
 int triggerline, oneline=1, triggerincrement; //for scrolling the pad whenever near bottom screen
@@ -56,9 +59,10 @@ void salesman_table(WINDOW *local_win, int ymax, int xmax)
 	int **QntyPrdctSold;
 	double **PriceComisArr;
 	double **FinalResultArr;
-	int charlimname = 9, charlimprod=10;
+	int charlimname = 9, charlimprod=9;
 	int i=0,n=0,j=0,k=0;
 	int navch,rowpadnav,scrolluplimit;
+	int tableHsize, numtableA;
 	
 	
 	//create values for triggerline
@@ -95,7 +99,7 @@ Input how many products, input names of each products. (3)Input how many salesma
 		totalSman=getQtyF(local_win,lwinrow,lwincol, &padref,"Enter number of salesman:");
 	}	
 	//for the salesman count
-    mvwprintw(local_win,++lwinrow,lwincol,"Number of Salesman: %dtriggerline=%d,bottomscr=%d", totalSman,triggerline,bottomscr);
+    mvwprintw(local_win,++lwinrow,lwincol,"Number of Salesman: %d pad width=%d", totalSman,xmax);
     prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
     refresh();
     
@@ -212,7 +216,9 @@ Input how many products, input names of each products. (3)Input how many salesma
     //list of salesman, list of product names, list of total of product solds, list of price, list of commission base on quantity not price
     lwinrow+=2;
     scrbot_checker(&lwinrow, &padref);
-    scrolluplimit = lwinrow;
+    
+    scrolluplimit = lwinrow; //start of input summary
+    
     //for label of summary need to be in center. ymax, xmax
     mvwprintw(local_win, lwinrow, (xmax-13)/2,"Summary Input");
     mvwprintw(local_win, ++lwinrow,lwincol, "List of Salesman's name");
@@ -257,21 +263,41 @@ Input how many products, input names of each products. (3)Input how many salesma
   //Creation of table
   //assign the table at the top of the screen
   padref.padystart=++lwinrow;
+  //row number of tablespad; 12 is the labels,margins
+  tableHsize =12 + totalSman + totalprodname + totalSman;
   
    /*START########## Create a Subpad for table output ######################START*/
-    tablepad=subpad(local_win,totalSman+5,subWidth,lwinrow+1,1);    							
-    if(tablepad==NULL)									
-  		bomb("Unable to create subpad");	
-  																	
+    if(xmax > 60){		//width size is fullscreen
+		tablepad=subpad(local_win,tableHsize,subWidth,lwinrow+1,1);    							
+		if(tablepad==NULL)									
+			bomb("Unable to create subpad");	
+    }
+    else{
+		numtableA=totalprodname/4; //how many table can be made out of table A
+		tableHsize=((totalSman+4)*numtableA)+totalprodname + totalSman + 12;  //row size of tablepad base on number of totalprodname 
+		tablepad=subpad(local_win,tableHsize,subWidth,lwinrow+1,1);    							
+    	if(tablepad==NULL)									
+			bomb("Unable to create subpad");
+    }
+		
+		
+      																	
     keypad(tablepad,TRUE);								
     wbkgd(tablepad,COLOR_PAIR(19)); 
     win_border(tablepad,0);
    /*END########### Create a Subpad for table output #########################END*/
    
+   //start-table title plus long underline
    mvwprintw(tablepad, 1, (subWidth-12)/2,"Output Table");
    mvwadd_wch(tablepad,2,0, WACS_T_LTEE);
    mvwhline_set(tablepad, 2, 1, WACS_T_HLINE, subWidth-2); 
    mvwadd_wch(tablepad, 2,subWidth-1, WACS_D_RTEE);
+   //end table title plus long underline
+   
+   mvwprintw(tablepad, 3, 1, "Table A: saleseperson and their product sold");
+   
+   createTableA(tablepad,totalprodname,totalSman,listnames,listprodnames,QntyPrdctSold,0);
+   
    prefresh(local_win,padref.padystart,padref.padxstart,	padref.screenystart,padref.screenxstart,	padref.HEIGHT,padref.WIDTH);
    touchwin(tablepad);
    wrefresh(local_win);
@@ -447,4 +473,118 @@ void SalesmanErrorMessage(WINDOW *local_win, int row, int col, char *message, PA
   exit(1);
 }		
 
-
+void createTableA(WINDOW* tablepad,int numproduct, int numsman, char **listnames, char **listprodnames, int **QntyPrdctSold, int prodnamecounter)
+{   
+	int currow, curcol, tpadrow,tpadcol;
+	int lengthstr,rightcollimit,lastproduct=0,numprodval;
+	int fieldremaining,productcharlimit=9;
+	int productlimit=numproduct;
+	int i=0,j=0,proddigit,intcount=0;
+	
+	getmaxyx(tablepad, tpadrow, tpadcol);
+	rightcollimit=tpadcol-2; //left margin column
+	getyx(tablepad, currow, curcol);
+    
+    ++currow,curcol=1;
+    //first line of table, the header of table A
+    mvwprintw(tablepad, currow, curcol, "_________|");
+    getyx(tablepad, currow,curcol);
+    //print table A column title
+    for(i=prodnamecounter;i<productlimit;i++){
+		getyx(tablepad, currow,curcol);
+        if((curcol+productcharlimit+1)>=rightcollimit){ //this checks if the product name column has reach the border width
+             lastproduct=i;     //if it does, record the next product name if any and last column plac
+             break;
+		}	
+	    lengthstr=strlen(listprodnames[i]);
+	    mvwprintw(tablepad, currow,curcol,"%s",listprodnames[i]); //print the product name
+	    fieldremaining=productcharlimit-lengthstr;  //compute maxchar and string length of product name
+	    while(fieldremaining>0){    //fill the remaining char with space every name
+			wprintw(tablepad," ");
+			fieldremaining--;
+	    }		
+	    wprintw(tablepad, "|");	
+  	
+	}	
+	
+	//this is the part where salesman name and product numbers is in column
+	//at the start, set one line line below the column labels
+	currow++,curcol=1;;
+	//set column limits for the numbers sold for each salesman
+	if(lastproduct)//if lastproduct has value
+		numprodval=lastproduct;
+	else
+		numprodval=numproduct;	
+		
+	//for the rows and column
+    for(i=0;i<numsman;i++){
+        for(j=0;j<numprodval;j++){
+	       if(j==0) //first column of every row contains the salesman title and the first value of the column
+	       {
+			 //for the salesman name for every row
+			 lengthstr=strlen(listnames[i]);
+			 mvwprintw(tablepad, currow,curcol,"%s",listnames[i]);
+			 fieldremaining=productcharlimit-lengthstr;  //compute maxchar and string length of product name
+	         while(fieldremaining>0){    //fill the remaining char with space every name
+			 wprintw(tablepad," ");
+			 fieldremaining--;
+	         }		
+	         wprintw(tablepad, "|");
+	         //end-for the salesman name for every row
+	         
+	         //first product value after the row salesman names: column 0
+	         proddigit=QntyPrdctSold[i][j]; //get the value
+	         //count the digits for character space
+	         if(proddigit==0){
+	             intcount=1;}
+	         else{    
+				while(proddigit){
+					proddigit/=10;
+					intcount++; // digit count
+				}	 
+	         }
+	         wprintw(tablepad,"%d",QntyPrdctSold[i][j]);
+	         fieldremaining=productcharlimit-intcount;
+	         while(fieldremaining>0){
+				 wprintw(tablepad," ");
+				 --fieldremaining; 
+			 }
+			 wprintw(tablepad, "|");
+			 intcount=0;	 
+	         	   
+		   }
+		   else{
+			   
+			 proddigit=QntyPrdctSold[i][j]; //get the value
+	         //count the digits for character space
+	         if(proddigit==0){
+	             intcount=1;}
+	         else{    
+				while(proddigit){
+					proddigit/=10;
+					intcount++; // digit count
+				}	 
+	         }
+	         wprintw(tablepad,"%d",QntyPrdctSold[i][j]);
+	         fieldremaining=productcharlimit-intcount;
+	         while(fieldremaining>0){
+				 wprintw(tablepad," ");
+				 --fieldremaining; 
+			 }
+			 wprintw(tablepad, "|");
+			 intcount=0;	 
+	         	   
+		   }
+			   
+			   
+        }	      
+		 currow++;   
+	
+    }
+	if(lastproduct){
+			mvwprintw(tablepad, ++currow, 1, "cont...");
+			createTableA(tablepad,numproduct,numsman,listnames,listprodnames,QntyPrdctSold,lastproduct);
+	}	
+   
+         
+} 
