@@ -7,6 +7,7 @@
 /* March 17, 2021: Separate window shadow creation from create_wind							*/
 /* MArch 24, 2021: Included PAD_PRESH function												*/
 /* April 4, 2021: wind_creation(): change size of bigpad newpad size from 200 to 300		*/
+/* April 23, 2021: Raise the height size of wind_creation for flag 5 from 300 t0 400		*/
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "main_with_form.h"
@@ -41,7 +42,7 @@ WINDOW *create_wind(WIN *pwin, WINDOW* parentwin)
   else if(pwin->flag==4)
 		local_win=newpad(20,54);
   else if(pwin->flag==5){
-		local_win=newpad(300,pwin->WIDTH);
+		local_win=newpad(400,pwin->WIDTH);
 		if(local_win==NULL)
 			 mvwprintw(parentwin,0,0,"Error creating pad");
 		}	
